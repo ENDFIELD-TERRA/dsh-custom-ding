@@ -387,6 +387,10 @@ describe('host API-shape simulation', () => {
         debounceMs: 0,
         persistent: true,
         kind: 'P2',
+        notificationsEnabled: false,
+        notificationsSupported: ['win32', 'darwin', 'linux'].includes(process.platform),
+        preferencesPersistent: true,
+        sounds: {},
         kinds: [
           { id: 'plan', label: '计划出方案' },
           { id: 'done', label: '任务完成' },

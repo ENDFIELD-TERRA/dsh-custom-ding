@@ -1,14 +1,21 @@
 // The settings page must never report a playback that did not happen. The master
 // switch lives in the plugin config, so a disabled plugin refuses a preview instead
 // of answering `played` and leaving the user with silence (review finding ①-3).
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 import assert from 'node:assert/strict'
 import { EventEmitter } from 'node:events'
-import { mkdtempSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-process.env.DSH_HOME = mkdtempSync(join(tmpdir(), 'perlica-preview-'))
+const previousHome = process.env.DSH_HOME
+const testHome = mkdtempSync(join(tmpdir(), 'perlica-preview-'))
+process.env.DSH_HOME = testHome
+after(() => {
+  if (previousHome === undefined) delete process.env.DSH_HOME
+  else process.env.DSH_HOME = previousHome
+  rmSync(testHome, { recursive: true, force: true })
+})
 
 const { activateHost } = await import('../lib/host/activate.mjs')
 

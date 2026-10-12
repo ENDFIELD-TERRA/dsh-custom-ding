@@ -3,7 +3,7 @@
   "manifestVersion": "0.15",
   "id": "terra.endfield.perlica-ding",
   "name": "Perlica Ding",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "facets": {
     "host": {
       "entry": "lib/host/facet-std.mjs",
@@ -24,12 +24,12 @@
     {
       "name": "storage.local.read",
       "scope": "terra.endfield.perlica-ding",
-      "reason": "Read the saved notification volume."
+      "reason": "Read the saved volume and notification preferences."
     },
     {
       "name": "storage.local.write",
       "scope": "terra.endfield.perlica-ding",
-      "reason": "Save the notification volume."
+      "reason": "Save the volume and notification preferences."
     }
   ],
   "contributes": {

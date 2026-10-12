@@ -64,6 +64,41 @@ test('the bundle exports the settings-page face and createTransport', () => {
 
 const createTransport = mod.createTransport
 
+test('sound imports and resets send the chosen scene and return saved preferences', async () => {
+  const saved = { sounds: { ask: { name: '提示.mp3' } }, notificationsEnabled: false }
+  const { impl, calls } = recordingFetch([jsonResponse(200, saved), jsonResponse(200, { sounds: {}, notificationsEnabled: false })])
+  const transport = createTransport({ fetchImpl: impl })
+  assert.deepEqual(await transport.setSound('ask', '提示.mp3', 'YWJj'), saved)
+  assert.equal(calls[0].url, '/perlica-ding/api/sound')
+  assert.deepEqual(JSON.parse(calls[0].init.body), { kind: 'ask', name: '提示.mp3', audio: 'YWJj' })
+  assert.deepEqual((await transport.resetSound('ask')).sounds, {})
+  assert.deepEqual(JSON.parse(calls[1].init.body), { kind: 'ask', reset: true })
+})
+
+test('notification controls report failed or invalid saves instead of an enabled switch', async () => {
+  const { impl } = recordingFetch([
+    jsonResponse(200, { notificationsEnabled: true, sounds: {} }),
+    jsonResponse(500, { error: 'disk full' }),
+    jsonResponse(200, {}),
+  ])
+  const transport = createTransport({ fetchImpl: impl })
+  assert.equal((await transport.setNotifications(true)).notificationsEnabled, true)
+  await assert.rejects(transport.setNotifications(false), /disk full/)
+  await assert.rejects(transport.setNotifications(false), /保存结果无效/)
+})
+
+test('decoded audio preserves both channels and rejects invalid or excessive samples', () => {
+  const audio = { numberOfChannels: 2, length: 3, sampleRate: 48000, getChannelData: channel => channel === 0 ? [-1, 0, 1] : [0.5, -0.5, 0] }
+  const bytes = mod.encodeAudio(audio)
+  const wav = Buffer.from(bytes)
+  assert.equal(wav.toString('ascii', 0, 4), 'RIFF')
+  assert.equal(wav.readUInt16LE(22), 2)
+  assert.equal(wav.readUInt32LE(40), 12)
+  assert.deepEqual([0, 2, 4, 6, 8, 10].map(offset => wav.readInt16LE(44 + offset)), [-32768, 16384, 0, -16384, 32767, 0])
+  assert.throws(() => mod.encodeAudio({ ...audio, length: 48000 * 31 }), /30 秒/)
+  assert.throws(() => mod.encodeAudio({ ...audio, getChannelData: () => [NaN, 0, 0] }), /无效采样/)
+})
+
 /** Build a fetch response stub carrying the given body. */
 function jsonResponse(status, body, contentType = 'application/json') {
   return {
@@ -112,6 +147,10 @@ test('getState: 200 round trip, base default, normalized shape', async () => {
     enabled: true,
     debounceMs: 250,
     persistent: true,
+    notificationsEnabled: false,
+    notificationsSupported: false,
+    preferencesPersistent: false,
+    sounds: {},
     kind: 'P2',
     kinds: [
       { id: 'plan', label: '计划出方案' },

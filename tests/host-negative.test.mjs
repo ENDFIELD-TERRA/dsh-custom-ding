@@ -366,7 +366,8 @@ describe('ADR §6 negative paths over the real host', () => {
     ctx.__fire('agent/turn-stopping', { agent: ROOT_AGENT })
     const preview = await callRoute(route, { method: 'POST', url: '/perlica-ding/api/preview', body: { kind: 'done' } })
 
-    assert.equal(preview.status, 200, 'the route must still answer after a failed player spawn')
+    assert.equal(preview.status, 502, 'a failed player must be reported to the person requesting a preview')
+    assert.match(preview.json.error, /未能播放/)
     assert.equal(subprocess.spawned.length >= 1, true, 'the host must actually have tried to play')
 
     // Let every rejection settle before counting.
