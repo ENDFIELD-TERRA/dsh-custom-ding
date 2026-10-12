@@ -3,7 +3,7 @@
   "manifestVersion": "0.15",
   "id": "terra.endfield.perlica-ding",
   "name": "Perlica Ding",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "facets": {
     "host": {
       "entry": "lib/host/facet-std.mjs",
