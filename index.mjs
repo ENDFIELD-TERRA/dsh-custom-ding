@@ -1,5 +1,5 @@
 /**
- * dsh-perlica-ding —— Tiered task-completion sounds for DeepSeek Harness.
+ * dsh-custom-ding —— Tiered task-completion sounds for DeepSeek Harness.
  *
  * Plays a configurable sound when a conversation turn closes, depending on what the
  * turn was doing:

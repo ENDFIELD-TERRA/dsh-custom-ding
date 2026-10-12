@@ -28,7 +28,9 @@ dsh web restart
 
 重启后打开 **设置 → 提示音与通知**。
 
-插件使用 DSH bundle 入口。只有标准组件接口、没有 DSH 产品服务的宿主无法运行提示音功能。内部包名、插件标识和存储目录使用 `dsh-perlica-ding`，与上游插件共用身份，安装时只启用其中一个。
+插件使用 DSH bundle 入口。只有标准组件接口、没有 DSH 产品服务的宿主无法运行提示音功能。安装包名为 `dsh-custom-ding`，与原佩丽卡插件拥有独立的插件标识、设置页、接口和存储，可以同时安装；同时启用时，两者各自发送提示。
+
+从安装名为 `dsh-perlica-ding` 的版本切换时，请重新安装本仓库，并确认插件列表显示 `dsh-custom-ding`。新插件不读取旧插件设置，首次安装需重新设置音量、导入自定义音效并开启弹窗；旧插件的设置与文件仍保留。
 
 ## 提示音与音量
 
@@ -56,8 +58,8 @@ dsh web restart
 在 profile 的 `cordis.patch.yml` 用户配置层中，按插件 ID 设置：
 
 ```yaml
-- id: dsh-perlica-ding
-  name: dsh-perlica-ding
+- id: dsh-custom-ding
+  name: dsh-custom-ding
   config:
     enabled: true
     volume: 100
@@ -69,13 +71,14 @@ dsh web restart
 
 ## 开发验证
 
-Node.js 22.15 或更高版本可运行仓库测试，无需先安装宿主依赖：
+需要 Node.js 22.15 或更高版本。先安装锁定的测试依赖，再运行验证：
 
 ```sh
+npm ci --ignore-scripts
 npm run verify
 ```
 
-测试覆盖通知判定、音量、音效导入与恢复、持久化、平台通知分支和失败处理。安装后的声音效果与桌面通知可通过设置页的试听和测试按钮确认。
+测试覆盖真实宿主事件分发、同一回合的补充消息、审批处理顺序、计划状态读取、插件并存、音量、音效导入与恢复、持久化及平台通知失败处理。安装后的声音效果与桌面通知可通过设置页的试听和测试按钮确认。
 
 ## 许可证
 

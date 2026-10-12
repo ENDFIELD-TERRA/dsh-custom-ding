@@ -59,7 +59,7 @@ function post(path, body) {
 test('a disabled plugin refuses a preview instead of claiming it played', async () => {
   spawned.length = 0
   const dispose = await activateHost(context(), { enabled: false, debounceMs: 2500, soundDir: '', volume: 100, execTools: [] }, { channel: 'native' })
-  const refusal = await post('/perlica-ding/api/preview', { kind: 'done' })
+  const refusal = await post('/custom-ding/api/preview', { kind: 'done' })
   assert.equal(refusal.status, 409)
   assert.match(JSON.parse(refusal.body).error, /disabled/)
   assert.equal(spawned.length, 0, 'nothing may be played when the master switch is off')
@@ -69,7 +69,7 @@ test('a disabled plugin refuses a preview instead of claiming it played', async 
 test('an enabled plugin still previews', async () => {
   spawned.length = 0
   const dispose = await activateHost(context(), { enabled: true, debounceMs: 2500, soundDir: '', volume: 100, execTools: [] }, { channel: 'native' })
-  const played = await post('/perlica-ding/api/preview', { kind: 'done' })
+  const played = await post('/custom-ding/api/preview', { kind: 'done' })
   assert.equal(played.status, 200)
   assert.equal(JSON.parse(played.body).played, 'done')
   await new Promise((resolve) => setTimeout(resolve, 50))

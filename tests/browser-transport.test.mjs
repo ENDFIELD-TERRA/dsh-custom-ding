@@ -1,5 +1,5 @@
 /**
- * dsh-perlica-ding — browser transport contract tests.
+ * dsh-custom-ding — browser transport contract tests.
  *
  * These load the REAL client bundle (`lib/browser/index.js`) through a
  * `window.__ModuleLoader__` shim, exactly as the DSH client module system
@@ -12,7 +12,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-const BUNDLE_ID = 'dsh-perlica-ding'
+const BUNDLE_ID = 'dsh-custom-ding'
 const ROUTE_MISSING_HEAD = '插件后台接口未就绪'
 const ROUTE_MISSING_TAIL = '——请重启 DSH 后重试'
 
@@ -58,7 +58,7 @@ test('the bundle requires nothing beyond react', () => {
 test('the bundle exports the settings-page face and createTransport', () => {
   assert.equal(typeof mod.apply, 'function')
   assert.deepEqual(mod.inject, ['slots'])
-  assert.equal(typeof mod.PerlicaDingSettings, 'function')
+  assert.equal(typeof mod.CustomDingSettings, 'function')
   assert.equal(typeof mod.createTransport, 'function')
 })
 
@@ -69,7 +69,7 @@ test('sound imports and resets send the chosen scene and return saved preference
   const { impl, calls } = recordingFetch([jsonResponse(200, saved), jsonResponse(200, { sounds: {}, notificationsEnabled: false })])
   const transport = createTransport({ fetchImpl: impl })
   assert.deepEqual(await transport.setSound('ask', '提示.mp3', 'YWJj'), saved)
-  assert.equal(calls[0].url, '/perlica-ding/api/sound')
+  assert.equal(calls[0].url, '/custom-ding/api/sound')
   assert.deepEqual(JSON.parse(calls[0].init.body), { kind: 'ask', name: '提示.mp3', audio: 'YWJj' })
   assert.deepEqual((await transport.resetSound('ask')).sounds, {})
   assert.deepEqual(JSON.parse(calls[1].init.body), { kind: 'ask', reset: true })
@@ -160,7 +160,7 @@ test('getState: 200 round trip, base default, normalized shape', async () => {
     ],
   })
   assert.equal(calls.length, 1)
-  assert.equal(calls[0].url, '/perlica-ding/api/state')
+  assert.equal(calls[0].url, '/custom-ding/api/state')
   assert.equal(calls[0].init.method, undefined)
 })
 
@@ -189,7 +189,7 @@ test('setVolume: 200 round trip posts JSON and returns the settled value', async
   const settled = await createTransport({ fetchImpl: impl }).setVolume(30)
 
   assert.equal(settled, 30)
-  assert.equal(calls[0].url, '/perlica-ding/api/volume')
+  assert.equal(calls[0].url, '/custom-ding/api/volume')
   assert.equal(calls[0].init.method, 'POST')
   assert.equal(calls[0].init.body, JSON.stringify({ volume: 30 }))
   assert.equal(calls[0].init.headers['content-type'], 'application/json')
@@ -208,7 +208,7 @@ test('preview: 200 round trip posts the kind and returns what played', async () 
   const played = await createTransport({ fetchImpl: impl }).preview('fail')
 
   assert.equal(played, 'fail')
-  assert.equal(calls[0].url, '/perlica-ding/api/preview')
+  assert.equal(calls[0].url, '/custom-ding/api/preview')
   assert.equal(calls[0].init.body, JSON.stringify({ kind: 'fail' }))
 })
 

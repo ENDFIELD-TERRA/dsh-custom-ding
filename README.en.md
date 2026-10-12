@@ -28,7 +28,9 @@ dsh web restart
 
 After restarting, open **Settings → 提示音与通知** (Sounds and notifications).
 
-Installation uses the DSH bundle entry. A host that offers only standard component interfaces without DSH product services cannot run the sound feature. The internal package name, plugin identity, and storage directory use `dsh-perlica-ding`. This shares the upstream plugin's identity, so enable only one of them.
+Installation uses the DSH bundle entry. A host that offers only standard component interfaces without DSH product services cannot run the sound feature. The package is named `dsh-custom-ding`. Its plugin identity, settings page, API, and storage are independent of the original Perlica plugin, so both can be installed together. When both are enabled, each sends its own notifications.
+
+When switching from a version installed as `dsh-perlica-ding`, reinstall this repository and confirm that the plugin list shows `dsh-custom-ding`. The new plugin does not read the old plugin's settings. Set the volume, import custom sounds, and enable popups again after installation. The old plugin's settings and files remain available.
 
 ## Sounds and volume
 
@@ -56,8 +58,8 @@ Notifications appear on the **computer hosting DSH**. System permissions, Focus 
 Configure the plugin by ID in the profile's user `cordis.patch.yml` layer:
 
 ```yaml
-- id: dsh-perlica-ding
-  name: dsh-perlica-ding
+- id: dsh-custom-ding
+  name: dsh-custom-ding
   config:
     enabled: true
     volume: 100
@@ -69,13 +71,14 @@ Configure the plugin by ID in the profile's user `cordis.patch.yml` layer:
 
 ## Development checks
 
-Run the repository tests with Node.js 22.15 or newer. Host dependencies are not required for this test suite:
+Use Node.js 22.15 or newer. Install the locked test dependencies before running verification:
 
 ```sh
+npm ci --ignore-scripts
 npm run verify
 ```
 
-Tests cover scene selection, volume, sound import and reset, persistence, platform notification paths, and failure handling. Use the settings page's preview and notification test buttons to check the installed experience.
+Tests cover the real host event dispatcher, same-turn follow-up messages, approval ordering, plan state, plugin coexistence, volume, sound import and reset, persistence, and platform notification failures. Use the settings page's preview and notification test buttons to check the installed experience.
 
 ## License
 

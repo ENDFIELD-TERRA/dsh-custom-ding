@@ -345,7 +345,7 @@ describe('P2 provider', () => {
       get() {
         return {
           async open() {
-            const error = new Error("domain 'perlica_ding' is already open")
+            const error = new Error("domain 'custom_ding' is already open")
             error.code = 'already-open'
             throw error
           },

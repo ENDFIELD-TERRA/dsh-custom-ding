@@ -2,5 +2,5 @@
 # 计划出方案 / 任务完成 / 需要回应 / 出错时触发提示，普通问答保持安静。
 # 声明 dsh.bundle：安装时作为组合层插入 profile 层栈，重启生效。
 - insert:
-    - id: dsh-perlica-ding
-      name: dsh-perlica-ding
+    - id: dsh-custom-ding
+      name: dsh-custom-ding

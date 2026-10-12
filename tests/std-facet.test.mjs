@@ -21,7 +21,7 @@ const { activateHost, activationState } = await import('../lib/host/activate.mjs
  */
 function stdActivationContext() {
   return Object.freeze({
-    identity: { component: 'terra.endfield.perlica-ding', version: '0.3.0', facet: 'host', instanceId: 'i-1', participantId: 'p-1' },
+    identity: { component: 'terra.endfield.custom-ding', version: '0.3.0', facet: 'host', instanceId: 'i-1', participantId: 'p-1' },
     plan: { revision: 'r-1', selected: [], activationOrder: [], compatible: true },
     scope: { add: () => {}, close: async () => {}, abort: () => {}, signal: { aborted: false } },
     protocols: { agreement: {}, client: () => undefined, implement: () => () => {} },

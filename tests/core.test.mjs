@@ -286,7 +286,7 @@ test('WAV scaling at 100% returns the original file untouched (BC7)', () => {
 
 test('the default cache directory lives under the OS temp dir', () => {
   assert.ok(DEFAULT_CACHE_DIR.startsWith(tmpdir()), DEFAULT_CACHE_DIR)
-  assert.equal(DEFAULT_CACHE_DIR, join(tmpdir(), 'dsh-perlica-ding'))
+  assert.equal(DEFAULT_CACHE_DIR, join(tmpdir(), 'dsh-custom-ding'))
 })
 
 test('WAV scaling halves samples at 50% and caches under a content key (K7)', () => {

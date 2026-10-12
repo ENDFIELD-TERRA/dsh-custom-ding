@@ -1,6 +1,6 @@
 {
-  "name": "dsh-perlica-ding",
-  "version": "0.3.3",
+  "name": "dsh-custom-ding",
+  "version": "0.3.4",
   "description": "Customizable task sounds and optional desktop notifications for DeepSeek Harness, with HAMA-SUSHI as the shared default sound.",
   "type": "module",
   "main": "index.mjs",
@@ -69,5 +69,13 @@
     "@deepseek-ai/schemastery": {
       "optional": true
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ENDFIELD-TERRA/dsh-custom-ding.git"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.4",
+    "@deepseek-ai/schemastery": "3.18.4"
   }
 }

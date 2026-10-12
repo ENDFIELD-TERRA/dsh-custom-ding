@@ -38,7 +38,7 @@ async function fixture(t, directory) {
   const dispose = await activateHost(ctx, { debounceMs: 0 })
   const server = createServer((req, res) => route.handler(req, res))
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
-  const base = `http://127.0.0.1:${server.address().port}/perlica-ding/api`
+  const base = `http://127.0.0.1:${server.address().port}/custom-ding/api`
   const request = async (path, body, headers = {}) => {
     const response = await fetch(base + path, {
       method: body === undefined ? 'GET' : 'POST',
@@ -74,6 +74,31 @@ test('popup notifications start off, work while muted, and stop after switching 
   assert.equal((await app.request('/notifications', { enabled: false })).status, 200)
   app.emit('agent/error', { agent: app.root })
   assert.equal(app.spawned.length, 1)
+})
+
+test('completed work still notifies after a follow-up message within the same turn', async t => {
+  const app = await fixture(t)
+  await app.request('/notifications', { enabled: true })
+  assert.equal((await app.request('/preview', { kind: 'done' })).status, 200)
+  assert.equal((await app.request('/notification-preview', {})).status, 200)
+  app.spawned.length = 0
+
+  app.emit('agent/inbox/claimed', { agent: app.root, turn: 1 })
+  app.emit('tools/result', { agent: app.root, name: 'pwsh' })
+  // The host claims each queued message, including follow-ups in the same turn.
+  app.emit('agent/inbox/claimed', { agent: app.root, turn: 1 })
+  app.emit('agent/turn-stopping', { agent: app.root, turn: 1 })
+  assert.equal(app.spawned.length, 2, 'finishing the command sends both sound and popup')
+
+  app.emit('agent/inbox/claimed', { agent: app.root, turn: 2 })
+  app.emit('tools/result', { agent: app.root, name: 'read' })
+  app.emit('agent/turn-stopping', { agent: app.root, turn: 2 })
+  assert.equal(app.spawned.length, 2, 'a later read-only conversation does not inherit completed work')
+
+  app.emit('agent/inbox/claimed', { agent: app.root, turn: 3 })
+  app.emit('tools/result', { agent: app.root, name: 'write' })
+  app.emit('agent/turn-stopping', { agent: app.root, turn: 3 })
+  assert.equal(app.spawned.length, 4, 'the next task can notify normally')
 })
 
 test('every scene plays the shared default clip with time to finish it', async t => {

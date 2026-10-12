@@ -98,7 +98,7 @@ function createRefusingFacility(code) {
   facility.open = async () => {
     facility.opens += 1
     const error = new Error(code === 'already-open'
-      ? "domain 'perlica_ding' is already open"
+      ? "domain 'custom_ding' is already open"
       : 'the storage medium is not writable')
     if (code !== null) error.code = code
     throw error
@@ -256,7 +256,7 @@ function baseServices(extra = {}) {
   }
 }
 
-const STATE_FILE = join('dsh-perlica-ding', 'state.json')
+const STATE_FILE = join('dsh-custom-ding', 'state.json')
 
 // --- ADR §6 rows -------------------------------------------------------------
 
@@ -267,11 +267,11 @@ describe('ADR §6 negative paths over the real host', () => {
 
     const { route } = await activate({ label: 'already-open', home, services: baseServices({ storageDomain: facility }) })
 
-    const state = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const state = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(state.json.kind, 'P3', 'a domain that is already open must fall through to the file tier')
     assert.equal(state.json.persistent, true)
 
-    const saved = await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 33 } })
+    const saved = await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 33 } })
     assert.equal(saved.status, 200, 'the fallback tier must still be writable')
     assert.equal(JSON.parse(await readFile(join(home, STATE_FILE), 'utf8')).volume, 33)
   }))
@@ -283,12 +283,12 @@ describe('ADR §6 negative paths over the real host', () => {
     const { route } = await activate({ label: 'open throws', home, services: baseServices({ storageDomain: facility }) })
 
     assert.equal(facility.opens, 1, 'the failing tier is attempted exactly once at selection')
-    await callRoute(route, { url: '/perlica-ding/api/state' })
-    await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 21 } })
-    await callRoute(route, { url: '/perlica-ding/api/state' })
+    await callRoute(route, { url: '/custom-ding/api/state' })
+    await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 21 } })
+    await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(facility.opens, 1, 'later reads and writes must not re-walk the chain')
 
-    const state = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const state = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(state.json.kind, 'P3')
   }))
 
@@ -296,26 +296,26 @@ describe('ADR §6 negative paths over the real host', () => {
     const home = await tempHome('neg-write')
     const { route } = await activate({ label: 'write fails', home, services: baseServices() })
 
-    const before = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const before = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(before.json.kind, 'P3', 'P3 is selected and open before the medium breaks')
 
     // A genuine medium failure: the state directory becomes a regular file, so
     // the atomic temp write can no longer land.
-    await rm(join(home, 'dsh-perlica-ding'), { recursive: true, force: true })
-    await writeFile(join(home, 'dsh-perlica-ding'), 'not a directory', 'utf8')
+    await rm(join(home, 'dsh-custom-ding'), { recursive: true, force: true })
+    await writeFile(join(home, 'dsh-custom-ding'), 'not a directory', 'utf8')
 
-    const failed = await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 99 } })
+    const failed = await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 99 } })
     assert.equal(failed.status >= 500 && failed.status < 600, true, 'a failed write must not answer 2xx, got ' + failed.status)
     assert.equal(typeof failed.json.error, 'string', 'the failure must carry a message for the page')
 
-    const after = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const after = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(after.json.volume, before.json.volume, 'the in-memory value must not advance on a failed write')
     assert.notEqual(after.json.volume, 99, 'the page must never be told the submitted value was saved')
   }))
 
   it('a corrupt P3 document is quarantined and the host keeps reading and writing', withHost(async () => {
     const home = await tempHome('neg-corrupt')
-    const stateDir = join(home, 'dsh-perlica-ding')
+    const stateDir = join(home, 'dsh-custom-ding')
     await mkdir(stateDir, { recursive: true })
     await writeFile(join(stateDir, 'state.json'), '{ not json at all', 'utf8')
 
@@ -325,11 +325,11 @@ describe('ADR §6 negative paths over the real host', () => {
     assert.equal(quarantined.length, 1, 'the damaged document must be preserved, not overwritten')
     assert.equal(await readFile(join(stateDir, quarantined[0]), 'utf8'), '{ not json at all', 'the original bytes survive')
 
-    const state = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const state = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(state.json.kind, 'P3')
     assert.equal(state.json.volume, 60, 'a damaged document reads as no value, so config.volume applies')
 
-    const saved = await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 25 } })
+    const saved = await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 25 } })
     assert.equal(saved.status, 200, 'the host must keep writing after a damaged document')
     assert.equal(JSON.parse(await readFile(join(home, STATE_FILE), 'utf8')).volume, 25)
   }))
@@ -342,12 +342,12 @@ describe('ADR §6 negative paths over the real host', () => {
 
     const { route } = await activate({ label: 'all tiers down', home: blocked, services: baseServices() })
 
-    const state = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const state = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(state.json.kind, 'none')
     assert.equal(state.json.persistent, false)
     assert.equal(state.json.volume, 60, 'the configured volume is the last resort and must be served')
 
-    const failed = await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 80 } })
+    const failed = await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 80 } })
     assert.equal(failed.status >= 500, true, 'a write with no tier must fail loudly, not silently succeed')
   }))
 
@@ -364,7 +364,7 @@ describe('ADR §6 negative paths over the real host', () => {
     ctx.__fire('agent/inbox/claimed', { agent: ROOT_AGENT })
     ctx.__fire('tools/result', { agent: ROOT_AGENT, name: 'pwsh' })
     ctx.__fire('agent/turn-stopping', { agent: ROOT_AGENT })
-    const preview = await callRoute(route, { method: 'POST', url: '/perlica-ding/api/preview', body: { kind: 'done' } })
+    const preview = await callRoute(route, { method: 'POST', url: '/custom-ding/api/preview', body: { kind: 'done' } })
 
     assert.equal(preview.status, 502, 'a failed player must be reported to the person requesting a preview')
     assert.match(preview.json.error, /未能播放/)
@@ -374,7 +374,7 @@ describe('ADR §6 negative paths over the real host', () => {
     await new Promise((resolve) => setTimeout(resolve, 50))
     assert.deepEqual(rejections, [], 'a spawn rejection must be handled, never left unhandled')
 
-    const state = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const state = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(state.status, 200, 'the host stays alive after a failed playback')
   }))
 
@@ -410,7 +410,7 @@ describe('ADR §6 negative paths over the real host', () => {
     deferred.callback(scope)
 
     assert.equal(late.routes.length, 1, 'the deferred injection must register the settings route')
-    const state = await callRoute(late.routes[0], { url: '/perlica-ding/api/state' })
+    const state = await callRoute(late.routes[0], { url: '/custom-ding/api/state' })
     assert.equal(state.status, 200, 'the late-registered route must work')
     assert.equal(state.json.kind, 'P3')
   }))
@@ -422,16 +422,16 @@ describe('ADR §4.5 transport admission rules', () => {
     const { route } = await activate({ label: 'origin rules', home, services: baseServices() })
 
     // The desktop renderer's forwarded request arrives with Origin deleted.
-    assert.equal((await callRoute(route, { url: '/perlica-ding/api/state' })).status, 200, 'a missing Origin must be admitted')
-    assert.equal((await callRoute(route, { url: '/perlica-ding/api/state', headers: {} })).status, 200)
+    assert.equal((await callRoute(route, { url: '/custom-ding/api/state' })).status, 200, 'a missing Origin must be admitted')
+    assert.equal((await callRoute(route, { url: '/custom-ding/api/state', headers: {} })).status, 200)
 
-    const desktop = await callRoute(route, { url: '/perlica-ding/api/state', headers: { origin: 'dsh-app://app' } })
+    const desktop = await callRoute(route, { url: '/custom-ding/api/state', headers: { origin: 'dsh-app://app' } })
     assert.equal(desktop.status, 200, 'the desktop document origin must be admitted')
 
-    const loopback = await callRoute(route, { url: '/perlica-ding/api/state', headers: { origin: 'http://127.0.0.1:19387' } })
+    const loopback = await callRoute(route, { url: '/custom-ding/api/state', headers: { origin: 'http://127.0.0.1:19387' } })
     assert.equal(loopback.status, 200, 'the loopback browser origin must be admitted')
 
-    const foreign = await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 5 }, headers: { origin: 'https://evil.example' } })
+    const foreign = await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 5 }, headers: { origin: 'https://evil.example' } })
     assert.equal(foreign.status, 403, 'a foreign origin must be refused before the handler runs')
   }))
 
@@ -441,7 +441,7 @@ describe('ADR §4.5 transport admission rules', () => {
 
     // A cross-site "simple request" cannot set application/json, so this is the
     // content type a forged POST actually carries.
-    const form = await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 5 }, headers: { 'content-type': 'text/plain' } })
+    const form = await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 5 }, headers: { 'content-type': 'text/plain' } })
     assert.equal(form.status, 415, 'a non-JSON content type must be refused')
 
     const oversized = JSON.stringify({ volume: 5, pad: 'x'.repeat(9000) })
@@ -452,11 +452,11 @@ describe('ADR §4.5 transport admission rules', () => {
     res.end = (payload) => {
       res.body = payload
     }
-    const req = createRequest({ method: 'POST', url: '/perlica-ding/api/volume', body: oversized, headers: { 'content-type': 'application/json' } })
+    const req = createRequest({ method: 'POST', url: '/custom-ding/api/volume', body: oversized, headers: { 'content-type': 'application/json' } })
     await route.handler(req, res)
     assert.equal(res.status, 413, 'a body past the cap must be refused rather than truncated')
 
-    assert.equal((await callRoute(route, { url: '/perlica-ding/api/elsewhere' })).status, 404, 'only the three operations may be reachable')
-    assert.equal((await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume' })).status, 415, 'a POST with no content type is not JSON')
+    assert.equal((await callRoute(route, { url: '/custom-ding/api/elsewhere' })).status, 404, 'only the three operations may be reachable')
+    assert.equal((await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume' })).status, 415, 'a POST with no content type is not JSON')
   }))
 })

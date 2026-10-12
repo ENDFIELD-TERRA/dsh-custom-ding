@@ -1,9 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/T-Auto/dsh-std/main/packages/manifest/schema/dsh-plugin-0.15.schema.json",
   "manifestVersion": "0.15",
-  "id": "terra.endfield.perlica-ding",
+  "id": "terra.endfield.custom-ding",
   "name": "DSH Custom Ding",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "facets": {
     "host": {
       "entry": "lib/host/facet-std.mjs",
@@ -23,19 +23,19 @@
   "permissions": [
     {
       "name": "storage.local.read",
-      "scope": "terra.endfield.perlica-ding",
+      "scope": "terra.endfield.custom-ding",
       "reason": "Read the saved volume and notification preferences."
     },
     {
       "name": "storage.local.write",
-      "scope": "terra.endfield.perlica-ding",
+      "scope": "terra.endfield.custom-ding",
       "reason": "Save the volume and notification preferences."
     }
   ],
   "contributes": {
     "x-browser-ui": [
       {
-        "id": "terra.endfield.perlica-ding.settings",
+        "id": "terra.endfield.custom-ding.settings",
         "apiVersion": "browser.ui.dsh/v1alpha1",
         "kind": "LocalModule",
         "name": "browser",

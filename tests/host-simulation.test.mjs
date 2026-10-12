@@ -379,7 +379,7 @@ describe('host API-shape simulation', () => {
       services: baseServices({ storageDomain: createFacility({ dir: domainDir }), settings }),
     })
 
-    assert.deepEqual(await callRoute(first.route, { url: '/perlica-ding/api/state' }), {
+    assert.deepEqual(await callRoute(first.route, { url: '/custom-ding/api/state' }), {
       status: 200,
       json: {
         volume: 90,
@@ -400,7 +400,7 @@ describe('host API-shape simulation', () => {
       },
     }, 'a 0.2.x storageDomain must be selected as P2, and an empty tier must not shadow config.volume')
 
-    const saved = await callRoute(first.route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 37 } })
+    const saved = await callRoute(first.route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 37 } })
     assert.equal(saved.status, 200)
     assert.deepEqual(saved.json, { volume: 37 })
 
@@ -408,7 +408,7 @@ describe('host API-shape simulation', () => {
     assert.equal(first.ctx.__injections.length, 0, 'webServer resolved immediately, so no deferred injection')
 
     // The bytes are on the medium, not in the process.
-    const onDisk = JSON.parse(await readFile(join(domainDir, 'perlica_ding.json'), 'utf8'))
+    const onDisk = JSON.parse(await readFile(join(domainDir, 'custom_ding.json'), 'utf8'))
     assert.equal(onDisk.tables.settings.volume.volume, 37)
     await first.release()
 
@@ -418,7 +418,7 @@ describe('host API-shape simulation', () => {
       home,
       services: baseServices({ storageDomain: createFacility({ dir: domainDir }), settings }),
     })
-    const reread = await callRoute(second.route, { url: '/perlica-ding/api/state' })
+    const reread = await callRoute(second.route, { url: '/custom-ding/api/state' })
     assert.equal(reread.json.volume, 37, 'the persisted volume must survive a fresh activation')
     assert.equal(reread.json.kind, 'P2')
 
@@ -430,13 +430,13 @@ describe('host API-shape simulation', () => {
 
     const { route } = await activate({ label: '0.2.x no facility', home, services: baseServices() })
 
-    const state = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const state = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(state.json.kind, 'P3')
     assert.equal(state.json.persistent, true)
     assert.equal(state.json.volume, 90, 'the configured volume survives an empty fallback tier')
 
-    await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 12 } })
-    const onDisk = JSON.parse(await readFile(join(home, 'dsh-perlica-ding', 'state.json'), 'utf8'))
+    await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 12 } })
+    const onDisk = JSON.parse(await readFile(join(home, 'dsh-custom-ding', 'state.json'), 'utf8'))
     assert.equal(onDisk.volume, 12, 'the fallback tier must land in the plugin state file')
   }))
 
@@ -456,14 +456,14 @@ describe('host API-shape simulation', () => {
       }),
     })
 
-    const state = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const state = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(state.json.kind, 'P2', 'the 0.1.5 shape reaches the same native tier')
     assert.equal(state.json.persistent, true)
     assert.equal(state.json.volume, 90, 'the configured volume survives an empty tier on this shape too')
 
-    const saved = await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 5 } })
+    const saved = await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 5 } })
     assert.equal(saved.status, 200)
-    assert.equal(JSON.parse(await readFile(join(domainDir, 'perlica_ding.json'), 'utf8')).tables.settings.volume.volume, 5)
+    assert.equal(JSON.parse(await readFile(join(domainDir, 'custom_ding.json'), 'utf8')).tables.settings.volume.volume, 5)
 
     assert.deepEqual(settingsCalls, [], 'register must never be called, even when the shape offers it')
   }))
@@ -477,11 +477,11 @@ describe('host API-shape simulation', () => {
       services: baseServices({ settings: { register() {} } }),
     })
 
-    const state = await callRoute(route, { url: '/perlica-ding/api/state' })
+    const state = await callRoute(route, { url: '/custom-ding/api/state' })
     assert.equal(state.json.kind, 'P3')
     assert.equal(state.json.volume, 90)
-    await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 44 } })
-    assert.equal(JSON.parse(await readFile(join(home, 'dsh-perlica-ding', 'state.json'), 'utf8')).volume, 44)
+    await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 44 } })
+    assert.equal(JSON.parse(await readFile(join(home, 'dsh-custom-ding', 'state.json'), 'utf8')).volume, 44)
   }))
 
   it('defect D1 regression: an empty tier must not shadow config.volume', withHost(async () => {
@@ -496,11 +496,11 @@ describe('host API-shape simulation', () => {
       config,
       services: baseServices({ storageDomain: createFacility({ dir: domainDir }) }),
     })
-    const emptyP2 = await callRoute(onP2.route, { url: '/perlica-ding/api/state' })
+    const emptyP2 = await callRoute(onP2.route, { url: '/custom-ding/api/state' })
     assert.equal(emptyP2.json.kind, 'P2', 'capabilities still reports the selected tier')
     assert.equal(emptyP2.json.persistent, true)
     assert.equal(emptyP2.json.volume, 30, 'an empty P2 must fall back to config.volume, not to the model default')
-    await callRoute(onP2.route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 70 } })
+    await callRoute(onP2.route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 70 } })
     await onP2.release()
 
     // Once a value is stored, the stored value beats the configured one.
@@ -510,14 +510,14 @@ describe('host API-shape simulation', () => {
       config,
       services: baseServices({ storageDomain: createFacility({ dir: domainDir }) }),
     })
-    const storedP2 = await callRoute(onP2Stored.route, { url: '/perlica-ding/api/state' })
+    const storedP2 = await callRoute(onP2Stored.route, { url: '/custom-ding/api/state' })
     assert.equal(storedP2.json.volume, 70, 'a stored value must win over config.volume')
     assert.equal(storedP2.json.kind, 'P2')
     await onP2Stored.release()
 
     // A selectable but empty P3 behaves the same way.
     const onP3 = await activate({ label: 'D1/P3 empty', home, config, services: baseServices() })
-    const emptyP3 = await callRoute(onP3.route, { url: '/perlica-ding/api/state' })
+    const emptyP3 = await callRoute(onP3.route, { url: '/custom-ding/api/state' })
     assert.equal(emptyP3.json.kind, 'P3')
     assert.equal(emptyP3.json.volume, 30, 'an empty P3 must fall back to config.volume too')
   }))
@@ -554,10 +554,10 @@ describe('host API-shape simulation', () => {
     })
 
     // A full assembly, one settings write, and one whole turn.
-    assert.equal((await callRoute(route, { url: '/perlica-ding/api/state' })).status, 200)
-    assert.equal((await callRoute(route, { method: 'POST', url: '/perlica-ding/api/volume', body: { volume: 8 } })).status, 200)
+    assert.equal((await callRoute(route, { url: '/custom-ding/api/state' })).status, 200)
+    assert.equal((await callRoute(route, { method: 'POST', url: '/custom-ding/api/volume', body: { volume: 8 } })).status, 200)
     driveDoneTurn(ctx, ROOT_AGENT)
-    assert.equal((await callRoute(route, { method: 'POST', url: '/perlica-ding/api/preview', body: { kind: 'done' } })).status, 200)
+    assert.equal((await callRoute(route, { method: 'POST', url: '/custom-ding/api/preview', body: { kind: 'done' } })).status, 200)
 
     assert.equal(subprocess.spawned.length >= 1, true, 'the turn must actually have played something')
     assert.deepEqual(touches, [], 'ctx.settings must never be accessed, directly or through ctx.get')
