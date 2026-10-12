@@ -13,8 +13,10 @@ async function fixture(t) {
 
 test('failed persistence retains the selected sound and cleans the uncommitted upload', async t => {
   const { stateDir, store } = await fixture(t)
-  const first = await readFile(new URL('../sounds/done.wav', import.meta.url))
-  const second = await readFile(new URL('../sounds/ask.wav', import.meta.url))
+  const first = await readFile(new URL('../sounds/HAMA-SUSHI.wav', import.meta.url))
+  const second = Buffer.from(first)
+  // Keep the two uploads distinct even though every scene shares one default.
+  second[second.length - 1] ^= 1
   await store.setSound({ kind: 'done', name: 'first.wav', audio: first.toString('base64') })
   const previous = store.snapshot()
   const file = join(stateDir, 'preferences.json')
@@ -40,7 +42,7 @@ test('damaged preferences are preserved and notification permission returns to o
 })
 
 test('malformed audio cannot bypass duration and chunk validation', async () => {
-  const original = await readFile(new URL('../sounds/done.wav', import.meta.url))
+  const original = await readFile(new URL('../sounds/HAMA-SUSHI.wav', import.meta.url))
   assert.ok(validateAudio(original) > 0)
   const truncated = original.subarray(0, 40)
   assert.throws(() => validateAudio(truncated))

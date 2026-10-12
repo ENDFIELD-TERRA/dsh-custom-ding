@@ -1,7 +1,7 @@
 {
   "name": "dsh-perlica-ding",
-  "version": "0.3.2",
-  "description": "佩丽卡终端 (Perlica Terminal)：明日方舟终末地佩丽卡主题的分级任务提示音插件。计划出方案、任务完成、需要你回应、出错时播放不同提示音，普通问答静音。Perlica-themed tiered sound notifications for DeepSeek Harness: plan ready, task done, needs your input, error tones.",
+  "version": "0.3.3",
+  "description": "Customizable task sounds and optional desktop notifications for DeepSeek Harness, with HAMA-SUSHI as the shared default sound.",
   "type": "module",
   "main": "index.mjs",
   "exports": {
@@ -48,12 +48,10 @@
     "beep",
     "ding",
     "task-complete",
-    "arknights",
-    "endfield",
-    "perlica",
-    "佩丽卡",
-    "明日方舟",
-    "终末地",
+    "customizable",
+    "windows",
+    "macos",
+    "linux",
     "提示音"
   ],
   "license": "MIT",

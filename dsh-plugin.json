@@ -2,8 +2,8 @@
   "$schema": "https://raw.githubusercontent.com/T-Auto/dsh-std/main/packages/manifest/schema/dsh-plugin-0.15.schema.json",
   "manifestVersion": "0.15",
   "id": "terra.endfield.perlica-ding",
-  "name": "Perlica Ding",
-  "version": "0.3.2",
+  "name": "DSH Custom Ding",
+  "version": "0.3.3",
   "facets": {
     "host": {
       "entry": "lib/host/facet-std.mjs",
@@ -16,7 +16,7 @@
         "apiVersion": "storage.dsh/v1alpha1",
         "kind": "LocalStorage",
         "optional": true,
-        "fallback": "The DSH native storage domain carries the volume; with neither available the volume does not survive a restart."
+        "fallback": "Use the native storage domain or local settings files when the standard provider is unavailable."
       }
     ]
   },

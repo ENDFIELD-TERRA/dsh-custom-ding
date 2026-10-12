@@ -1,10 +1,20 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import { activateHost } from '../lib/host/activate.mjs'
+import { validateAudio } from '../lib/host/preferences.mjs'
+
+const DEFAULT_SOUND = new URL('../sounds/HAMA-SUSHI.wav', import.meta.url)
+
+function playedFile(spec) {
+  return process.platform === 'win32'
+    ? Buffer.from(spec.argv.at(-1), 'base64').toString('utf16le').match(/SoundPlayer '([^']+)'/)[1]
+    : spec.argv.at(-1)
+}
 
 async function fixture(t, directory) {
   const home = directory ?? await mkdtemp(join(tmpdir(), 'ding-settings-'))
@@ -66,9 +76,33 @@ test('popup notifications start off, work while muted, and stop after switching 
   assert.equal(app.spawned.length, 1)
 })
 
+test('every scene plays the shared default clip with time to finish it', async t => {
+  const app = await fixture(t)
+  const audio = await readFile(DEFAULT_SOUND)
+  const durationMs = Math.ceil(validateAudio(audio) * 1000)
+  for (const kind of ['plan', 'done', 'ask', 'fail']) {
+    assert.equal((await app.request('/preview', { kind })).status, 200)
+    const playback = app.spawned.at(-1)
+    assert.equal(playedFile(playback), fileURLToPath(DEFAULT_SOUND))
+    assert.ok(playback.graceMs >= durationMs + 1000, 'the full default clip must fit inside the playback window')
+  }
+  assert.deepEqual(await readdir(new URL('../sounds/', import.meta.url)), ['HAMA-SUSHI.wav'])
+})
+
+test('restoring a scene returns playback to the shared default sound', async t => {
+  const app = await fixture(t)
+  const audio = (await readFile(DEFAULT_SOUND)).toString('base64')
+  await app.request('/sound', { kind: 'ask', name: 'custom.wav', audio })
+  await app.request('/preview', { kind: 'ask' })
+  assert.notEqual(playedFile(app.spawned.at(-1)), fileURLToPath(DEFAULT_SOUND))
+  assert.equal((await app.request('/sound', { kind: 'ask', reset: true })).status, 200)
+  await app.request('/preview', { kind: 'ask' })
+  assert.equal(playedFile(app.spawned.at(-1)), fileURLToPath(DEFAULT_SOUND))
+})
+
 test('an uploaded sound is used for previews, survives restart, and can be reset', async t => {
   const app = await fixture(t)
-  const original = await readFile(new URL('../sounds/done.wav', import.meta.url))
+  const original = await readFile(DEFAULT_SOUND)
   const upload = await app.request('/sound', { kind: 'done', name: '我的完成提示.wav', audio: original.toString('base64') })
   assert.equal(upload.status, 200)
   assert.equal(upload.body.sounds.done.name, '我的完成提示.wav')
@@ -92,7 +126,7 @@ test('an uploaded sound is used for previews, survives restart, and can be reset
 
 test('invalid audio and unsafe sound names cannot replace a saved sound', async t => {
   const app = await fixture(t)
-  const original = await readFile(new URL('../sounds/ask.wav', import.meta.url))
+  const original = await readFile(DEFAULT_SOUND)
   assert.equal((await app.request('/sound', { kind: 'ask', name: 'ask.wav', audio: original.toString('base64') })).status, 200)
   for (const body of [
     { kind: '../state', name: 'ask.wav', audio: original.toString('base64') },
@@ -107,7 +141,7 @@ test('invalid audio and unsafe sound names cannot replace a saved sound', async 
 
 test('concurrent sound and notification changes survive together', async t => {
   const app = await fixture(t)
-  const wav = (await readFile(new URL('../sounds/done.wav', import.meta.url))).toString('base64')
+  const wav = (await readFile(DEFAULT_SOUND)).toString('base64')
   const results = await Promise.all([
     app.request('/sound', { kind: 'done', name: 'done.wav', audio: wav }),
     app.request('/sound', { kind: 'plan', name: 'plan.wav', audio: wav }),

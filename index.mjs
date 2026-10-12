@@ -1,7 +1,7 @@
 /**
  * dsh-perlica-ding —— Tiered task-completion sounds for DeepSeek Harness.
  *
- * Plays a distinct sound when an agent turn closes, depending on what the
+ * Plays a configurable sound when a conversation turn closes, depending on what the
  * turn was doing:
  *   - plan mode active            -> plan sound (a plan was produced)
  *   - tools were used             -> done sound (a task was executed)

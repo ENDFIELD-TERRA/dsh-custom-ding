@@ -1,5 +1,5 @@
-# dsh-perlica-ding —— DeepSeek Harness 分级任务提示音插件
-# 在 agent 回合（任务）结束时按场景播放不同提示音：计划出方案 / 任务完成 / 需要你回应 / 出错；普通问答保持安静。
+# DSH Custom Ding —— DeepSeek Harness 任务提示音与系统通知
+# 计划出方案 / 任务完成 / 需要回应 / 出错时触发提示，普通问答保持安静。
 # 声明 dsh.bundle：安装时作为组合层插入 profile 层栈，重启生效。
 - insert:
     - id: dsh-perlica-ding
